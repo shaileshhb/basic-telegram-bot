@@ -47,7 +47,6 @@ func stopApp(ser *server.Server) {
 }
 
 func run(ser *server.Server, ctx context.Context) error {
-	log.Info("inside run function")
 	listener, err := ngrok.Listen(ctx,
 		config.HTTPEndpoint(),
 		ngrok.WithAuthtokenFromEnv(),
