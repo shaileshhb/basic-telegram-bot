@@ -1,19 +1,17 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/signal"
-	"sync"
-	"syscall"
+	"strconv"
 
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/joho/godotenv"
 	"github.com/shaileshhb/namastebot/src/server"
-	"golang.ngrok.com/ngrok"
-	"golang.ngrok.com/ngrok/config"
+	"github.com/shaileshhb/namastebot/src/telegram"
 )
+
+var channelID int64
+var userID int64
 
 func main() {
 	err := godotenv.Load()
@@ -21,22 +19,73 @@ func main() {
 		panic(err)
 	}
 
-	var wg sync.WaitGroup
-
-	ser := server.NewServer("Basic telegram bot", &wg)
-	ser.CreateRouterInstance()
-
-	err = run(ser, context.Background())
+	id, err := strconv.Atoi(os.Getenv("CHANNEL_ID"))
 	if err != nil {
 		panic(err)
 	}
-	// log.Error(ser.App.Listen(":8080"))
 
-	// Stop Server On System Call or Interrupt.
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGINT)
-	<-ch
-	stopApp(ser)
+	channelID = int64(id)
+
+	id, err = strconv.Atoi(os.Getenv("USER_ID"))
+	if err != nil {
+		panic(err)
+	}
+
+	userID = int64(id)
+
+	// ========================================================================
+	// bot, err := telegram.ConfigureTGBotAPI()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// // bot.Debug = true
+
+	// err = telegram.CreateInviteLinkTGBOTAPI(bot)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = telegram.GetChatMemberTGBOTAPI(bot)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = telegram.GetUpdates(bot)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// ========================================================================
+
+	testGoTgBot()
+
+	// ========================================================================
+	// var wg sync.WaitGroup
+
+	// ser := server.NewServer("Basic telegram bot", &wg)
+	// ser.CreateRouterInstance()
+
+	// err = run(ser, context.Background())
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // log.Error(ser.App.Listen(":8080"))
+
+	// // Stop Server On System Call or Interrupt.
+	// ch := make(chan os.Signal, 1)
+	// signal.Notify(ch, os.Interrupt, syscall.SIGINT)
+	// <-ch
+	// stopApp(ser)
+}
+
+func testGoTgBot() {
+	bot := telegram.NewGoTGBot(channelID, userID)
+
+	err := bot.CreateInviteLink()
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func stopApp(ser *server.Server) {
@@ -46,16 +95,16 @@ func stopApp(ser *server.Server) {
 	os.Exit(0)
 }
 
-func run(ser *server.Server, ctx context.Context) error {
-	listener, err := ngrok.Listen(ctx,
-		config.HTTPEndpoint(),
-		ngrok.WithAuthtokenFromEnv(),
-	)
-	if err != nil {
-		return err
-	}
+// func run(ser *server.Server, ctx context.Context) error {
+// 	listener, err := ngrok.Listen(ctx,
+// 		config.HTTPEndpoint(),
+// 		ngrok.WithAuthtokenFromEnv(),
+// 	)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	log.Info("App URL ", listener.URL())
-	log.Error(ser.App.Listen(":8080"))
-	return nil
-}
+// 	log.Info("App URL ", listener.URL())
+// 	log.Error(ser.App.Listen(":8080"))
+// 	return nil
+// }
